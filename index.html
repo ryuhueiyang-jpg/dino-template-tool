@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dino 티스토리 블로그용 HTML 자동작성 템플릿 체험판</title>
+<style>
+  body{font-family:"Noto Sans KR",sans-serif;background:#fafafa;margin:0;padding:24px;color:#1f2937}
+  .wrap{max-width:880px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px}
+  h1{font-size:20px;margin:0 0 12px}
+  label{display:block;margin:.6rem 0 .2rem;font-size:.9rem;color:#374151}
+  input,textarea,select{width:100%;padding:.6rem .8rem;border:1px solid #d1d5db;border-radius:8px;font-size:.95rem}
+  button{padding:.7rem 1.2rem;border:0;border-radius:8px;cursor:pointer}
+  .btn-primary{background:#2563eb;color:#fff;font-weight:600}
+  .btn-secondary{background:#4b5563;color:#fff}
+  .btn-ghost{background:#e5e7eb;color:#111827}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .preview{border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff;min-height:120px}
+  .out{width:100%;height:180px;margin-top:8px}
+  .hint{font-size:.85rem;color:#6b7280;margin-top:6px}
+  .meter{font-size:.85rem;color:#6b7280;text-align:right;margin-top:4px}
+  .sec-card{border:1px solid #e5e7eb;border-radius:10px;padding:10px;background:#f9fafb;margin:.6rem 0}
+  .sec-row{display:flex;gap:8px;align-items:center;justify-content:space-between}
+  .sec-actions{display:flex;gap:6px;align-items:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>티스토리 블로그 HTML 자동작성 템플릿 체험판</h1>
+
+  <div class="row">
+    <div style="flex:1 1 220px">
+      <label>제목</label>
+      <input id="title" value="티스토리 블로그 제목 넣는 칸">
+    </div>
+    <div style="flex:1 1 180px">
+      <label>태그 (쉼표로 구분)</label>
+      <input id="tags" value="블로그, 샘플, HTML자동작성, 테스트 중">
+    </div>
+    <div style="flex:0 0 220px">
+      <label>테마</label>
+      <select id="theme">
+        <option value="blue" selected>Tistory Blue</option>
+        <option value="grey">Minimal Grey</option>
+        <option value="safe">Safe Inline</option>
+      </select>
+    </div>
+  </div>
+
+  <label style="margin-top:.8rem">본문</label>
+  <textarea id="body" rows="6">티스토리 블로그 사용자를 위한 HTML 자동작성 템플릿을 테스트 중입니다.</textarea>
+  <div id="meter" class="meter">글자수: 270</div>
+
+  <!-- 소제목 섹션 -->
+  <div class="row" style="align-items:center;justify-content:flex-start;margin-top:8px;gap:8px">
+    <button class="btn-ghost" id="addSection">+ 소제목 추가</button>
+    <small class="hint">소제목과 내용을 여러 개 추가할 수 있어요.</small>
+  </div>
+
+  <div id="sections"></div>
+
+  <div class="row" style="align-items:center;justify-content:flex-end;margin-top:8px;gap:6px">
+    <button class="btn-ghost" id="clear">입력 지우기</button>
+    <button class="btn-primary" id="apply">템플릿 적용</button>
+  </div>
+
+  <h2 style="font-size:16px;margin:18px 0 8px;">미리보기</h2>
+  <div id="preview" class="preview">여기에 템플릿 적용 결과가 표시됩니다.</div>
+
+  <h2 style="font-size:16px;margin:18px 0 8px;">결과 HTML (백업 복사 영역)</h2>
+  <textarea id="output" class="out" readonly></textarea>
+  <div class="row" style="margin-top:8px;gap:8px">
+    <button class="btn-secondary" id="copyTop">HTML 복사하기</button>
+    <button class="btn-ghost" id="download">파일로 저장(.html)</button>
+  </div>
+  <div style="margin-top:10px;text-align:right">
+    <button class="btn-secondary" id="copyBottom">아래에서도 복사</button>
+  </div>
+
+  <div class="hint">
+    복사 버튼이 막히는 환경이면 위 박스 내용을 드래그해서 수동 복사하세요.<br>
+    붙여넣을 때는 <b>티스토리 글쓰기 → HTML 모드</b>로 전환해야 스타일이 유지됩니다.
+  </div>
+</div>
+
+<script>
+  const $ = s => document.querySelector(s);
+  const el = {
+    title: $('#title'),
+    body: $('#body'),
+    tags: $('#tags'),
+    theme: $('#theme'),
+    preview: $('#preview'),
+    output: $('#output'),
+    apply: $('#apply'),
+    copyTop: $('#copyTop'),
+    copyBottom: $('#copyBottom'),
+    clear: $('#clear'),
+    download: $('#download'),
+    meter: $('#meter'),
+    addSection: $('#addSection'),
+    sectionsWrap: $('#sections')
+  };
+
+  // 기본 샘플 섹션 데이터
+  let sections = [
+    {h:'티스토리 블로그 사용자를 위한 추천1',
+     c:'본문 내용 작성후 우측 상단 템플릿적용을 누르시면 미리보기칸에 템플릿 적용결과가 표시됩니다.'},
+    {h:'티스토리 블로그 사용자를 위한 추천2',
+     c:'템플릿을 우선 적용한 후 맨 아래 HTML 복사영역에서 복사하시면 HTML코드가 자동으로 만들어 집니다. 그렇게 복사된 코드내용을 티스토리 블로그에서 붙여넣기 하시면 됩니다.'}
+  ];
+
+  function renderSections(){
+    el.sectionsWrap.innerHTML = '';
+    sections.forEach((sec, idx)=>{
+      const card = document.createElement('div');
+      card.className = 'sec-card';
+      card.innerHTML = `
+        <div class="sec-row">
+          <label style="margin:0">소제목 ${idx+1}</label>
+          <div class="sec-actions">
+            <button class="btn-ghost" data-act="up">△</button>
+            <button class="btn-ghost" data-act="down">▽</button>
+            <button class="btn-ghost" data-act="del">삭제</button>
+          </div>
+        </div>
+        <input data-key="h" placeholder="소제목 입력" value="${sec.h.replace(/"/g,'&quot;')}">
+        <label style="margin-top:.5rem">내용</label>
+        <textarea data-key="c" rows="4">${sec.c}</textarea>
+      `;
+      card.querySelectorAll('input,textarea').forEach(inp=>{
+        inp.addEventListener('input', e=>{
+          const k = e.target.getAttribute('data-key');
+          sections[idx][k] = e.target.value;
+          updateMeter();
+        });
+      });
+      card.querySelector('[data-act="del"]').addEventListener('click', ()=>{
+        sections.splice(idx,1); renderSections(); updateMeter();
+      });
+      card.querySelector('[data-act="up"]').addEventListener('click', ()=>{
+        if(idx===0) return;
+        [sections[idx-1], sections[idx]] = [sections[idx], sections[idx-1]];
+        renderSections();
+      });
+      card.querySelector('[data-act="down"]').addEventListener('click', ()=>{
+        if(idx===sections.length-1) return;
+        [sections[idx+1], sections[idx]] = [sections[idx], sections[idx+1]];
+        renderSections();
+      });
+      el.sectionsWrap.appendChild(card);
+    });
+  }
+
+  el.addSection.addEventListener('click', ()=>{
+    sections.push({h:'',c:''}); renderSections();
+  });
+
+  function updateMeter(){
+    const base = (el.title.value + el.body.value + el.tags.value);
+    const secSum = sections.map(s=> (s.h||'') + (s.c||'')).join('');
+    const len = (base + secSum).length;
+    el.meter.textContent = `글자수: ${len}`;
+  }
+
+  function buildTemplate(){
+    const date = new Date().toLocaleDateString("ko-KR");
+    const t = el.title.value || "제목 없음";
+    const tg = el.tags.value;
+    const safeBody = (el.body.value||'').replace(/\n/g,"<br>");
+    let content = safeBody;
+    if(sections.length){
+      const secHTML = sections.map(s=>`
+  <section>
+    <h2 style="margin:1.2rem 0 .6rem;font-size:1.2rem;color:#111827">${s.h}</h2>
+    <div style="line-height:1.75">${(s.c||'').replace(/\n/g,"<br>")}</div>
+  </section>`).join('');
+      content += secHTML;
+    }
+    return `
+<div style="max-width:820px;margin:0 auto;padding:1rem;font-family:'Noto Sans KR',sans-serif;color:#111827;">
+  <h1 style="background:#eff6ff;color:#1e3a8a;padding:.8rem 1rem;border-radius:12px;border:1px solid #bfdbfe;margin-bottom:1rem;font-size:1.4rem;font-weight:700;">${t}</h1>
+  <article style="border:1px solid #e5e7eb;border-radius:12px;padding:1rem;margin:1rem 0;line-height:1.7;">
+    ${content}
+  </article>
+  <footer style="margin-top:1rem;font-size:.85rem;color:#6b7280;">
+    <p>Published: ${date}</p>
+    <p>Tags: ${tg}</p>
+  </footer>
+</div>`;
+  }
+
+  function apply(){
+    const html = buildTemplate();
+    el.preview.innerHTML = html;
+    el.output.value = html;
+    window._lastTemplate = html;
+    updateMeter();
+  }
+
+  async function copyHTML(){
+    const html = window._lastTemplate || el.output.value;
+    if(!html){alert('먼저 템플릿을 적용하세요.');return;}
+    try{
+      await navigator.clipboard.writeText(html);
+      alert('복사되었습니다. 티스토리 글쓰기(HTML 모드)에 붙여넣으세요.');
+    }catch(e){
+      el.output.select(); document.execCommand('copy');
+      alert('복사되었습니다(대체 방식).');
+    }
+  }
+
+  function downloadFile(){
+    const html = window._lastTemplate || el.output.value;
+    const blob = new Blob([html],{type:'text/html;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='post.html';a.click();
+  }
+
+  function clearAll(){
+    if(!confirm('모든 입력을 지울까요?'))return;
+    el.title.value='';el.body.value='';el.tags.value='';sections=[];
+    el.sectionsWrap.innerHTML='';el.preview.innerHTML='';el.output.value='';
+    el.meter.textContent='글자수: 0';
+  }
+
+  // 이벤트
+  el.apply.addEventListener('click', apply);
+  el.copyTop.addEventListener('click', copyHTML);
+  el.copyBottom.addEventListener('click', copyHTML);
+  el.download.addEventListener('click', downloadFile);
+  el.clear.addEventListener('click', clearAll);
+
+  // 초기 렌더
+  renderSections(); updateMeter();
+</script>
+</body>
+</html>
